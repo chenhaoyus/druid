@@ -28,6 +28,9 @@ public enum VisitorFeature {
     OutputParameterizedQuesUnMergeAnd,
     OutputParameterizedQuesUnMergeValuesList,
     OutputParameterizedUnMergeShardingTable,
+    OutputParameterizedUnMergeZero,
+    OutputParameterizedUnMergeOne,
+    OutputParameterizedUnMergeIn,
     OutputParameterizedZeroReplaceNotUseOriginalSql,
     OutputRegForPresto,
     /**
@@ -36,7 +39,9 @@ public enum VisitorFeature {
     OutputKeepParenthesisWhenNotExpr,
 
     OutputNameQuote,
-    OutputDistributedLiteralInCreateTableStmt;
+    OutputDistributedLiteralInCreateTableStmt,
+    OutputSkipMultilineComment,
+    OutputSkipSingleLineComment;
 
     private VisitorFeature() {
         mask = (1 << ordinal());

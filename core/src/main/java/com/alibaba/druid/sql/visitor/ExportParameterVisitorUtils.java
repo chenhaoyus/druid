@@ -34,7 +34,7 @@ public final class ExportParameterVisitorUtils {
         super();
     }
 
-    public static ExportParameterVisitor createExportParameterVisitor(Appendable out, DbType dbType) {
+    public static ExportParameterVisitor createExportParameterVisitor(StringBuilder out, DbType dbType) {
         if (dbType == null) {
             dbType = DbType.other;
         }
@@ -43,17 +43,20 @@ public final class ExportParameterVisitorUtils {
             case mysql:
             case mariadb:
             case tidb:
+            case polardbx:
                 return new MySqlExportParameterVisitor(out);
             case oracle:
                 return new OracleExportParameterVisitor(out);
             case db2:
                 return new DB2ExportParameterVisitor(out);
             case h2:
+            case lealone:
                 return new MySqlExportParameterVisitor(out);
             case sqlserver:
             case jtds:
                 return new MSSQLServerExportParameterVisitor(out);
             case postgresql:
+            case greenplum:
             case edb:
                 return new PGExportParameterVisitor(out);
             default:

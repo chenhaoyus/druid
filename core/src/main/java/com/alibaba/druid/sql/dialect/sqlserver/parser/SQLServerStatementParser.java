@@ -20,7 +20,6 @@ import com.alibaba.druid.sql.ast.expr.SQLIdentifierExpr;
 import com.alibaba.druid.sql.ast.expr.SQLQueryExpr;
 import com.alibaba.druid.sql.ast.statement.*;
 import com.alibaba.druid.sql.dialect.sqlserver.ast.SQLServerOutput;
-import com.alibaba.druid.sql.dialect.sqlserver.ast.SQLServerTop;
 import com.alibaba.druid.sql.dialect.sqlserver.ast.stmt.*;
 import com.alibaba.druid.sql.dialect.sqlserver.ast.stmt.SQLServerExecStatement.SQLServerParameter;
 import com.alibaba.druid.sql.parser.*;
@@ -28,6 +27,8 @@ import com.alibaba.druid.util.FnvHash;
 
 import java.util.Collection;
 import java.util.List;
+
+import static com.alibaba.druid.sql.parser.Token.LITERAL_ALIAS;
 
 public class SQLServerStatementParser extends SQLStatementParser {
     public SQLServerStatementParser(String sql) {
@@ -183,7 +184,7 @@ public class SQLServerStatementParser extends SQLStatementParser {
                                 || lexer.token() == Token.UNIQUE //
                                 || lexer.token() == Token.CHECK //
                                 || lexer.token() == Token.CONSTRAINT) {
-                            SQLConstraint constraint = this.exprParser.parseConstaint();
+                            SQLConstraint constraint = this.exprParser.parseConstraint();
                             constraint.setParent(item);
                             item.getTableElementList().add((SQLTableElement) constraint);
                         } else if (lexer.token() == Token.TABLESPACE) {
@@ -243,7 +244,7 @@ public class SQLServerStatementParser extends SQLStatementParser {
     protected void parseInsert0(SQLInsertInto insert, boolean acceptSubQuery) {
         SQLServerInsertStatement insertStatement = (SQLServerInsertStatement) insert;
 
-        SQLServerTop top = this.getExprParser().parseTop();
+        SQLTop top = this.getExprParser().parseTop();
         if (top != null) {
             insertStatement.setTop(top);
         }
@@ -259,7 +260,7 @@ public class SQLServerStatementParser extends SQLStatementParser {
             insertStatement.setAlias(tableAlias());
         }
 
-        parseInsert0_hinits(insertStatement);
+        parseInsert0Hints(insertStatement, false);
 
         if (lexer.token() == Token.IDENTIFIER && !lexer.stringVal().equalsIgnoreCase("OUTPUT")) {
             insertStatement.setAlias(lexer.stringVal());
@@ -314,37 +315,37 @@ public class SQLServerStatementParser extends SQLStatementParser {
     }
 
     public SQLUpdateStatement parseUpdateStatement() {
-        SQLServerUpdateStatement udpateStatement = createUpdateStatement();
+        SQLServerUpdateStatement updateStatement = createUpdateStatement();
 
         accept(Token.UPDATE);
 
-        SQLServerTop top = this.getExprParser().parseTop();
+        SQLTop top = this.getExprParser().parseTop();
         if (top != null) {
-            udpateStatement.setTop(top);
+            updateStatement.setTop(top);
         }
 
         SQLTableSource tableSource = this.exprParser.createSelectParser().parseTableSource();
-        udpateStatement.setTableSource(tableSource);
+        updateStatement.setTableSource(tableSource);
 
-        parseUpdateSet(udpateStatement);
+        parseUpdateSet(updateStatement);
 
         SQLServerOutput output = this.getExprParser().parserOutput();
         if (output != null) {
-            udpateStatement.setOutput(output);
+            updateStatement.setOutput(output);
         }
 
         if (lexer.token() == Token.FROM) {
             lexer.nextToken();
             SQLTableSource from = this.exprParser.createSelectParser().parseTableSource();
-            udpateStatement.setFrom(from);
+            updateStatement.setFrom(from);
         }
 
         if (lexer.token() == (Token.WHERE)) {
             lexer.nextToken();
-            udpateStatement.setWhere(this.exprParser.expr());
+            updateStatement.setWhere(this.exprParser.expr());
         }
 
-        return udpateStatement;
+        return updateStatement;
     }
 
     @Override
@@ -578,5 +579,60 @@ public class SQLServerStatementParser extends SQLStatementParser {
         }
 
         return stmt;
+    }
+
+    public void parseAlterDrop(SQLAlterTableStatement stmt) {
+        lexer.nextToken();
+        if (lexer.token() == Token.CONSTRAINT) {
+            lexer.nextToken();
+            SQLAlterTableDropConstraint item = new SQLAlterTableDropConstraint();
+            item.setConstraintName(this.exprParser.name());
+            stmt.addItem(item);
+        } else if (lexer.token() == Token.COLUMN) {
+            lexer.nextToken();
+            SQLAlterTableDropColumnItem item = new SQLAlterTableDropColumnItem();
+            if (lexer.token() == Token.IF) {
+                lexer.nextToken();
+                accept(Token.EXISTS);
+                item.setIfExists(true);
+            }
+            SQLName name = exprParser.name();
+            name.setParent(item);
+            item.addColumn(name);
+            while (lexer.token() == Token.COMMA) {
+                lexer.nextToken();
+
+                if (lexer.token() == Token.COLUMN) {
+                    lexer.nextToken();
+                }
+                name = exprParser.name();
+                name.setParent(item);
+                item.addColumn(name);
+            }
+
+            stmt.addItem(item);
+        } else if (lexer.token() == Token.INDEX) {
+            lexer.nextToken();
+            SQLName indexName = this.exprParser.name();
+            SQLAlterTableDropIndex item = new SQLAlterTableDropIndex();
+            item.setIndexName(indexName);
+            stmt.addItem(item);
+        } else if (lexer.token() == Token.PRIMARY) {
+            lexer.nextToken();
+            accept(Token.KEY);
+            SQLAlterTableDropPrimaryKey item = new SQLAlterTableDropPrimaryKey();
+            stmt.addItem(item);
+        } else {
+            throw new ParserException("TODO : " + lexer.info());
+        }
+    }
+
+    protected void alterTableAddRestSpecific(SQLAlterTableStatement stmt) {
+        if (lexer.token() == LITERAL_ALIAS) {
+            SQLAlterTableAddColumn item = parseAlterTableAddColumn();
+            stmt.addItem(item);
+            return;
+        }
+        throw new ParserException("TODO " + lexer.info());
     }
 }

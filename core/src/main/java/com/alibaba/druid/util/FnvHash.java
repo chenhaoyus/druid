@@ -106,8 +106,8 @@ public final class FnvHash {
     /**
      * lower and normalized and fnv_1a_64
      *
-     * @param name
-     * @return
+     * @param name the string to calculate the hash code for
+     * @return the 64-bit hash code of the string
      */
     public static long hashCode64(String name) {
         if (name == null) {
@@ -282,9 +282,9 @@ public final class FnvHash {
     /**
      * normalized and lower and fnv1a_64_hash
      *
-     * @param owner
-     * @param name
-     * @return
+     * @param owner the owner string to include in the hash code calculation (can be null)
+     * @param name  the name string to include in the hash code calculation (can be null)
+     * @return the 64-bit hash code calculated from the owner and name strings
      */
     public static long hashCode64(String owner, String name) {
         long hashCode = BASIC;
@@ -357,7 +357,7 @@ public final class FnvHash {
         return hashCode;
     }
 
-    public static interface Constants {
+    public interface Constants {
         long HIGH_PRIORITY = fnv1a_64_lower("HIGH_PRIORITY");
         long DISTINCTROW = fnv1a_64_lower("DISTINCTROW");
         long STRAIGHT = fnv1a_64_lower("STRAIGHT");
@@ -366,6 +366,8 @@ public final class FnvHash {
         long SQL_BIG_RESULT = fnv1a_64_lower("SQL_BIG_RESULT");
         long SQL_BUFFER_RESULT = fnv1a_64_lower("SQL_BUFFER_RESULT");
         long CACHE = fnv1a_64_lower("CACHE");
+        long CACHED = fnv1a_64_lower("CACHED");
+        long UNCACHED = fnv1a_64_lower("UNCACHED");
         long SQL_CACHE = fnv1a_64_lower("SQL_CACHE");
         long SQL_NO_CACHE = fnv1a_64_lower("SQL_NO_CACHE");
         long SQL_CALC_FOUND_ROWS = fnv1a_64_lower("SQL_CALC_FOUND_ROWS");
@@ -375,7 +377,6 @@ public final class FnvHash {
         long REGEXP = fnv1a_64_lower("REGEXP");
         long RLIKE = fnv1a_64_lower("RLIKE");
         long USING = fnv1a_64_lower("USING");
-        long MATCHED = fnv1a_64_lower("MATCHED");
         long IGNORE = fnv1a_64_lower("IGNORE");
         long FORCE = fnv1a_64_lower("FORCE");
         long CROSS = fnv1a_64_lower("CROSS");
@@ -385,6 +386,7 @@ public final class FnvHash {
         long START = fnv1a_64_lower("START");
         long BTREE = fnv1a_64_lower("BTREE");
         long HASH = fnv1a_64_lower("HASH");
+        long DUPLICATE = fnv1a_64_lower("DUPLICATE");
         long LIST = fnv1a_64_lower("LIST");
         long NO_WAIT = fnv1a_64_lower("NO_WAIT");
         long WAIT = fnv1a_64_lower("WAIT");
@@ -405,6 +407,7 @@ public final class FnvHash {
         long COLLATE = fnv1a_64_lower("COLLATE");
         long BOOLEAN = fnv1a_64_lower("BOOLEAN");
         long SMALLINT = fnv1a_64_lower("SMALLINT");
+        long MEDIUMINT = fnv1a_64_lower("MEDIUMINT");
         long SHORT = fnv1a_64_lower("SHORT");
         long TINY = fnv1a_64_lower("TINY");
         long TINYINT = fnv1a_64_lower("TINYINT");
@@ -490,6 +493,7 @@ public final class FnvHash {
         long CIRCLE = fnv1a_64_lower("CIRCLE");
         long LSEG = fnv1a_64_lower("LSEG");
         long POINT = fnv1a_64_lower("POINT");
+        long E = fnv1a_64_lower("E");
         long BOX = fnv1a_64_lower("BOX");
         long MACADDR = fnv1a_64_lower("MACADDR");
         long INET = fnv1a_64_lower("INET");
@@ -524,6 +528,7 @@ public final class FnvHash {
         long SUBTIME = fnv1a_64_lower("SUBTIME");
         long TIMEDIFF = fnv1a_64_lower("TIMEDIFF");
         long SQLCODE = fnv1a_64_lower("SQLCODE");
+        long SQLERRM = fnv1a_64_lower("SQLERRM");
         long PRECISION = fnv1a_64_lower("PRECISION");
         long DOUBLE = fnv1a_64_lower("DOUBLE");
         long DOUBLE_PRECISION = fnv1a_64_lower("DOUBLE PRECISION");
@@ -579,6 +584,7 @@ public final class FnvHash {
         long SIMPLE = fnv1a_64_lower("SIMPLE");
         long RESTRICT = fnv1a_64_lower("RESTRICT");
         long ON = fnv1a_64_lower("ON");
+        long ONLINE = fnv1a_64_lower("ONLINE");
         long ACTION = fnv1a_64_lower("ACTION");
         long SEPARATOR = fnv1a_64_lower("SEPARATOR");
         long DATA = fnv1a_64_lower("DATA");
@@ -591,6 +597,9 @@ public final class FnvHash {
         long RECURSIVE = fnv1a_64_lower("RECURSIVE");
         long ROLLUP = fnv1a_64_lower("ROLLUP");
         long CUBE = fnv1a_64_lower("CUBE");
+        long TEMPLATE = fnv1a_64_lower("TEMPLATE");
+        long ALLOW_CONNECTIONS = fnv1a_64_lower("ALLOW_CONNECTIONS");
+        long IS_TEMPLATE = fnv1a_64_lower("IS_TEMPLATE");
 
         long YEAR = fnv1a_64_lower("YEAR");
         long QUARTER = fnv1a_64_lower("QUARTER");
@@ -654,6 +663,7 @@ public final class FnvHash {
         long STATISTICS = fnv1a_64_lower("STATISTICS");
         long TRANSACTION = fnv1a_64_lower("TRANSACTION");
         long OFF = fnv1a_64_lower("OFF");
+        long OFFLINE = fnv1a_64_lower("OFFLINE");
         long IDENTITY_INSERT = fnv1a_64_lower("IDENTITY_INSERT");
         long PASSWORD = fnv1a_64_lower("PASSWORD");
         long SOCKET = fnv1a_64_lower("SOCKET");
@@ -714,6 +724,7 @@ public final class FnvHash {
         long FILE_BLOCK_SIZE = fnv1a_64_lower("FILE_BLOCK_SIZE");
         long BLOCK_SIZE = fnv1a_64_lower("BLOCK_SIZE");
         long REPLICA_NUM = fnv1a_64_lower("REPLICA_NUM");
+        long REPLICATION = fnv1a_64_lower("REPLICATION");
         long TABLET_SIZE = fnv1a_64_lower("TABLET_SIZE");
         long PCTFREE = fnv1a_64_lower("PCTFREE");
         long USE_BLOOM_FILTER = fnv1a_64_lower("USE_BLOOM_FILTER");
@@ -726,9 +737,15 @@ public final class FnvHash {
         long LINEAR = fnv1a_64_lower("LINEAR");
         long EVERY = fnv1a_64_lower("EVERY");
         long STARTS = fnv1a_64_lower("STARTS");
+        long END = fnv1a_64_lower("END");
         long ENDS = fnv1a_64_lower("ENDS");
         long BINARY = fnv1a_64_lower("BINARY");
         long GEOMETRY = fnv1a_64_lower("GEOMETRY");
+        long FOUND = fnv1a_64_lower("FOUND");
+        long NOTFOUND = fnv1a_64_lower("NOTFOUND");
+        long ROWCOUNT = fnv1a_64_lower("ROWCOUNT");
+        long BULK_ROWCOUNT = fnv1a_64_lower("BULK_ROWCOUNT");
+        long BULK_EXCEPTIONS = fnv1a_64_lower("BULK_EXCEPTIONS");
         long ISOPEN = fnv1a_64_lower("ISOPEN");
         long CONFLICT = fnv1a_64_lower("CONFLICT");
         long NOTHING = fnv1a_64_lower("NOTHING");
@@ -769,6 +786,8 @@ public final class FnvHash {
         long ALTER = fnv1a_64_lower("ALTER");
         long DESC = fnv1a_64_lower("DESC");
         long SET = fnv1a_64_lower("SET");
+        long MULTISET = fnv1a_64_lower("MULTISET");
+        long VOLATILE = fnv1a_64_lower("VOLATILE");
         long KILL = fnv1a_64_lower("KILL");
         long MSCK = fnv1a_64_lower("MSCK");
         long USE = fnv1a_64_lower("USE");
@@ -816,6 +835,7 @@ public final class FnvHash {
         long PROCESSLIST = fnv1a_64_lower("PROCESSLIST");
         long MPP = fnv1a_64_lower("MPP");
         long SERDE = fnv1a_64_lower("SERDE");
+        long SERDEPROPERTIES = fnv1a_64_lower("SERDEPROPERTIES");
         long SORT = fnv1a_64_lower("SORT");
         long ZORDER = fnv1a_64_lower("ZORDER");
         long FIELDS = fnv1a_64_lower("FIELDS");
@@ -956,6 +976,7 @@ public final class FnvHash {
         long PERIOD_ADD = fnv1a_64_lower("PERIOD_ADD");
         long PERIOD_DIFF = fnv1a_64_lower("PERIOD_DIFF");
         long ROUND = fnv1a_64_lower("ROUND");
+        long ROUNDROBIN = fnv1a_64_lower("ROUNDROBIN");
         long DBPARTITION = fnv1a_64_lower("DBPARTITION");
         long TBPARTITION = fnv1a_64_lower("TBPARTITION");
         long EXTPARTITION = fnv1a_64_lower("EXTPARTITION");
@@ -1138,5 +1159,25 @@ public final class FnvHash {
         long CLONE = fnv1a_64_lower("CLONE");
         long INSTALL = fnv1a_64_lower("INSTALL");
         long UNLOAD = fnv1a_64_lower("UNLOAD");
+
+        long AGGREGATE = fnv1a_64_lower("AGGREGATE");
+        long UNIQUE = fnv1a_64_lower("UNIQUE");
+        long PRIMARY = fnv1a_64_lower("PRIMARY");
+        long THAN = fnv1a_64_lower("THAN");
+        long PROPERTIES = fnv1a_64_lower("PROPERTIES");
+        long SINGLE = fnv1a_64_lower("SINGLE");
+        long RANDOM = fnv1a_64_lower("RANDOM");
+
+        long TABLESPACE = fnv1a_64_lower("TABLESPACE");
+        long DATANODE = fnv1a_64_lower("DATANODE");
+        long DELTA = fnv1a_64_lower("DELTA");
+        long PREFIX = fnv1a_64_lower("PREFIX");
+        long NUMSTR = fnv1a_64_lower("NUMSTR");
+        long NOCOMPRESS = fnv1a_64_lower("NOCOMPRESS");
+        long COMPRESS_MODE = fnv1a_64_lower("COMPRESS_MODE");
+        long BROKER = fnv1a_64_lower("BROKER");
+        long INDEX = fnv1a_64_lower("INDEX");
+        long SETPROJECT = fnv1a_64_lower("SETPROJECT");
+        long NAMED_STRUCT = fnv1a_64_lower("NAMED_STRUCT");
     }
 }

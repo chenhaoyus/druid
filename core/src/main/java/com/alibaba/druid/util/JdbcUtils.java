@@ -38,6 +38,8 @@ public final class JdbcUtils implements JdbcConstants {
 
     private static Boolean mysql_driver_version_6;
 
+    private static Boolean clickhouse_driver_version_new;
+
     static {
         try {
             ClassLoader ctxClassLoader = Thread.currentThread().getContextClassLoader();
@@ -460,6 +462,8 @@ public final class JdbcUtils implements JdbcConstants {
             return "com.ingres.jdbc.IngresDriver";
         } else if (rawUrl.startsWith("jdbc:h2:")) {
             return H2_DRIVER;
+        } else if (rawUrl.startsWith("jdbc:lealone:")) {
+            return LEALONE_DRIVER;
         } else if (rawUrl.startsWith("jdbc:mckoi:")) {
             return "com.mckoi.JDBCDriver";
         } else if (rawUrl.startsWith("jdbc:cloudscape:")) {
@@ -509,7 +513,14 @@ public final class JdbcUtils implements JdbcConstants {
         } else if (rawUrl.startsWith("jdbc:elastic:")) {
             return JdbcConstants.ELASTIC_SEARCH_DRIVER;
         } else if (rawUrl.startsWith("jdbc:clickhouse:")) {
-            return JdbcConstants.CLICKHOUSE_DRIVER;
+            if (clickhouse_driver_version_new == null) {
+                clickhouse_driver_version_new = Utils.loadClass(JdbcConstants.CLICKHOUSE_DRIVER_NEW) != null;
+            }
+            if (clickhouse_driver_version_new) {
+                return JdbcConstants.CLICKHOUSE_DRIVER_NEW;
+            } else {
+                return JdbcConstants.CLICKHOUSE_DRIVER;
+            }
         } else if (rawUrl.startsWith("jdbc:presto:")) {
             return JdbcConstants.PRESTO_DRIVER;
         } else if (rawUrl.startsWith("jdbc:trino:")) {
@@ -517,6 +528,9 @@ public final class JdbcUtils implements JdbcConstants {
         } else if (rawUrl.startsWith("jdbc:inspur:")) {
             return JdbcConstants.KDB_DRIVER;
         } else if (rawUrl.startsWith("jdbc:polardb")) {
+            if (rawUrl.startsWith("jdbc:polardbx:")) {
+                return JdbcConstants.POLARDBX_DRIVER;
+            }
             return JdbcConstants.POLARDB_DRIVER;
         } else if (rawUrl.startsWith("jdbc:highgo:")) {
             return "com.highgo.jdbc.Driver";
@@ -525,7 +539,15 @@ public final class JdbcUtils implements JdbcConstants {
         } else if (rawUrl.startsWith("jdbc:dbcp:")) {
             return JdbcConstants.TYDB_DRIVER;
         } else if (rawUrl.startsWith("jdbc:opengauss:")) {
-            return "org.opengauss.Driver";
+            return JdbcConstants.OPENGAUSS_DRIVER;
+        } else if (rawUrl.startsWith("jdbc:TAOS:")) {
+            return JdbcConstants.TAOS_DATA;
+        } else if (rawUrl.startsWith("jdbc:TAOS-RS:")) {
+            return JdbcConstants.TAOS_DATA_RS;
+        } else if (rawUrl.startsWith("jdbc:gbasedbt-sqli:")) {
+            return JdbcConstants.GBASE8S_DRIVER;
+        } else if (rawUrl.startsWith("jdbc:sundb:")) {
+            return JdbcConstants.SUNDB_DRIVER;
         } else {
             throw new SQLException("unknown jdbc driver : " + rawUrl);
         }
@@ -540,6 +562,8 @@ public final class JdbcUtils implements JdbcConstants {
             return DbType.derby;
         } else if (rawUrl.startsWith("jdbc:mysql:") || rawUrl.startsWith("jdbc:cobar:")
                 || rawUrl.startsWith("jdbc:log4jdbc:mysql:")) {
+            return DbType.mysql;
+        } else if (rawUrl.startsWith("jdbc:goldendb:")) {
             return DbType.mysql;
         } else if (rawUrl.startsWith("jdbc:mariadb:")) {
             return DbType.mariadb;
@@ -579,6 +603,8 @@ public final class JdbcUtils implements JdbcConstants {
             return DbType.ingres;
         } else if (rawUrl.startsWith("jdbc:h2:") || rawUrl.startsWith("jdbc:log4jdbc:h2:")) {
             return DbType.h2;
+        } else if (rawUrl.startsWith("jdbc:lealone:")) {
+            return DbType.lealone;
         } else if (rawUrl.startsWith("jdbc:mckoi:")) {
             return DbType.mock;
         } else if (rawUrl.startsWith("jdbc:cloudscape:")) {
@@ -634,6 +660,9 @@ public final class JdbcUtils implements JdbcConstants {
         } else if (rawUrl.startsWith("jdbc:inspur:")) {
             return DbType.kdb;
         } else if (rawUrl.startsWith("jdbc:polardb")) {
+            if (rawUrl.startsWith("jdbc:polardbx:")) {
+                return DbType.polardbx;
+            }
             return DbType.polardb;
         } else if (rawUrl.startsWith("jdbc:highgo:")) {
             return DbType.highgo;
@@ -641,6 +670,12 @@ public final class JdbcUtils implements JdbcConstants {
             return DbType.greenplum;
         } else if (rawUrl.startsWith("jdbc:opengauss:") || rawUrl.startsWith("jdbc:gaussdb:") || rawUrl.startsWith("jdbc:dws:iam:")) {
             return DbType.gaussdb;
+        } else if (rawUrl.startsWith("jdbc:TAOS:") || rawUrl.startsWith("jdbc:TAOS-RS:")) {
+            return DbType.taosdata;
+        } else if (rawUrl.startsWith("jdbc:oscar:")) {
+            return DbType.oscar;
+        } else if (rawUrl.startsWith("jdbc:sundb:")) {
+            return DbType.sundb;
         } else {
             return null;
         }
@@ -927,6 +962,7 @@ public final class JdbcUtils implements JdbcConstants {
     public static boolean isMySqlDriver(String driverClassName) {
         return driverClassName.equals(JdbcConstants.MYSQL_DRIVER) //
                 || driverClassName.equals(JdbcConstants.MYSQL_DRIVER_6)
+                || driverClassName.equals(JdbcConstants.MYSQL_DRIVER_603)
                 || driverClassName.equals(JdbcConstants.MYSQL_DRIVER_REPLICATE);
     }
 
@@ -960,6 +996,9 @@ public final class JdbcUtils implements JdbcConstants {
             case mariadb:
             case tidb:
             case h2:
+            case lealone:
+            case goldendb:
+            case polardbx:
                 return true;
             default:
                 return false;
@@ -983,6 +1022,7 @@ public final class JdbcUtils implements JdbcConstants {
             case polardb:
             case greenplum:
             case gaussdb:
+            case hologres:
                 return true;
             default:
                 return false;

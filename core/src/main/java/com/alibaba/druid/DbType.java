@@ -39,7 +39,11 @@ public enum DbType {
 
     clickhouse(1 << 28),
     blink(1 << 29),
+
+    @Deprecated
     antspark(1 << 30),
+
+    spark(1 << 30),
     oceanbase_oracle(1 << 31),
     polardb(1L << 32),
 
@@ -64,6 +68,31 @@ public enum DbType {
 
     tydb(1L << 42),
 
+    starrocks(1L << 43),
+
+    goldendb(1L << 44),
+
+    snowflake(1L << 45),
+
+    redshift(1L << 46),
+
+    hologres(1L << 47),
+
+    bigquery(1L << 48),
+
+    impala(1L << 49),
+
+    doris(1L << 50),
+
+    lealone(1L << 51),
+
+    athena(1L << 52),
+
+    polardbx(1L << 53),
+    supersql(1L << 54),
+    databricks(1L << 55),
+    adb_mysql(1L << 56),
+
     ingres(0),
     cloudscape(0),
     timesten(0),
@@ -78,7 +107,9 @@ public enum DbType {
     interbase(0),
     pointbase(0),
     edbc(0),
-    mimer(0);
+    mimer(0),
+    taosdata(0),
+    sundb(0);
 
     public final long mask;
     public final long hashCode64;
@@ -107,6 +138,10 @@ public enum DbType {
             return ads;
         }
 
+        if ("maxcompute".equalsIgnoreCase(name)) {
+            return odps;
+        }
+
         try {
             return valueOf(name);
         } catch (Exception e) {
@@ -114,6 +149,9 @@ public enum DbType {
         }
     }
 
+    public static boolean isPostgreSQLDbStyle(DbType dbType) {
+        return dbType == DbType.postgresql || dbType == DbType.edb || dbType == DbType.greenplum || dbType == DbType.hologres;
+    }
     public final boolean equals(String other) {
         return this == of(other);
     }

@@ -27,12 +27,9 @@ import com.alibaba.druid.sql.dialect.oracle.ast.stmt.*;
 import com.alibaba.druid.sql.dialect.oracle.parser.OracleFunctionDataType;
 import com.alibaba.druid.sql.dialect.oracle.parser.OracleProcedureDataType;
 import com.alibaba.druid.sql.dialect.oracle.visitor.OracleASTVisitor;
-import com.alibaba.druid.sql.dialect.oscar.ast.OscarTop;
 import com.alibaba.druid.sql.dialect.oscar.ast.stmt.*;
 import com.alibaba.druid.sql.dialect.oscar.ast.stmt.OscarSelectQueryBlock.FetchClause;
 import com.alibaba.druid.sql.dialect.oscar.ast.stmt.OscarSelectQueryBlock.ForClause;
-import com.alibaba.druid.sql.dialect.sqlserver.ast.stmt.SQLServerInsertStatement;
-import com.alibaba.druid.sql.dialect.sqlserver.ast.stmt.SQLServerUpdateStatement;
 import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
 
 import java.util.LinkedHashSet;
@@ -40,42 +37,12 @@ import java.util.List;
 import java.util.Set;
 
 public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTVisitor, OracleASTVisitor {
-    public OscarOutputVisitor(Appendable appender) {
-        super(appender);
-        this.dbType = DbType.oscar;
+    public OscarOutputVisitor(StringBuilder appender) {
+        super(appender, DbType.oscar);
     }
 
-    public OscarOutputVisitor(Appendable appender, boolean parameterized) {
-        super(appender, parameterized);
-        this.dbType = DbType.oscar;
-    }
-
-    @Override
-    public boolean visit(OscarTop x) {
-        boolean parameterized = this.parameterized;
-        this.parameterized = false;
-
-        print0(ucase ? "TOP " : "top ");
-
-        boolean paren = false;
-
-        if (x.getParent() instanceof SQLServerUpdateStatement || x.getParent() instanceof SQLServerInsertStatement) {
-            paren = true;
-            print('(');
-        }
-
-        x.getExpr().accept(this);
-
-        if (paren) {
-            print(')');
-        }
-
-        if (x.isPercent()) {
-            print0(ucase ? " PERCENT" : " percent");
-        }
-
-        this.parameterized = parameterized;
-        return false;
+    public OscarOutputVisitor(StringBuilder appender, boolean parameterized) {
+        super(appender, DbType.oscar, parameterized);
     }
 
     @Override
@@ -151,7 +118,7 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
             }
         }
 
-        OscarTop top = x.getTop();
+        SQLTop top = x.getTop();
         if (top != null) {
             visit(top);
             print(' ');
@@ -183,10 +150,7 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
             x.getFrom().accept(this);
         }
 
-        SQLExpr where = x.getWhere();
-        if (where != null) {
-            printWhere(where);
-        }
+        printWhere(x);
 
         if (x.getGroupBy() != null) {
             println();
@@ -667,12 +631,12 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
     }
 
     @Override
-    public boolean visit(OracleExceptionStatement x) {
+    public boolean visit(SQLExceptionStatement x) {
         return false;
     }
 
     @Override
-    public boolean visit(OracleExceptionStatement.Item x) {
+    public boolean visit(SQLExceptionStatement.Item x) {
         return false;
     }
 
@@ -830,6 +794,12 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
             x.getPivot().accept(this);
         }
 
+        SQLUnpivot unpivot = x.getUnpivot();
+        if (unpivot != null) {
+            println();
+            unpivot.accept(this);
+        }
+
         printAlias(x.getAlias());
 
         return false;
@@ -849,15 +819,11 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
     }
 
     public boolean visit(OracleIntervalExpr x) {
-        if (x.getValue() instanceof SQLLiteralExpr) {
+        if (x.getValue() instanceof SQLLiteralExpr || x.getValue() instanceof SQLVariantRefExpr) {
             print0(ucase ? "INTERVAL " : "interval ");
-            x.getValue().accept(this);
-            print(' ');
-        } else {
-            print('(');
-            x.getValue().accept(this);
-            print0(") ");
         }
+        x.getValue().accept(this);
+        print(' ');
 
         print0(x.getType().name());
 
@@ -1220,7 +1186,9 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
         if (isPrettyFormat() && x.hasBeforeComment()) {
             printlnComments(x.getBeforeCommentsDirect());
         }
-
+        if (x.isParenthesized()) {
+            print('(');
+        }
         print0(ucase ? "SELECT " : "select ");
 
         if (x.getHintsSize() > 0) {
@@ -1296,7 +1264,9 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
                 x.getWaitTime().accept(this);
             }
         }
-
+        if (x.isParenthesized()) {
+            print(')');
+        }
         return false;
     }
 
@@ -1727,18 +1697,18 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
             print0(ucase ? "CURSOR_SPECIFIC_SEGMENT" : "cursor_specific_segment");
         }
 
-        if (x.getParallel() == Boolean.TRUE) {
+        if (Boolean.TRUE.equals(x.getParallel())) {
             println();
             print0(ucase ? "PARALLEL" : "parallel");
-        } else if (x.getParallel() == Boolean.FALSE) {
+        } else if (Boolean.FALSE.equals(x.getParallel())) {
             println();
             print0(ucase ? "NOPARALLEL" : "noparallel");
         }
 
-        if (x.getCache() == Boolean.TRUE) {
+        if (Boolean.TRUE.equals(x.getCache())) {
             println();
             print0(ucase ? "CACHE" : "cache");
-        } else if (x.getCache() == Boolean.FALSE) {
+        } else if (Boolean.FALSE.equals(x.getCache())) {
             println();
             print0(ucase ? "NOCACHE" : "nocache");
         }
@@ -1761,11 +1731,7 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
             print0(ucase ? "MONITORING" : "monitoring");
         }
 
-        if (x.getPartitioning() != null) {
-            println();
-            print0(ucase ? "PARTITION BY " : "partition by ");
-            x.getPartitioning().accept(this);
-        }
+        printPartitionBy(x);
 
         if (x.getCluster() != null) {
             println();
@@ -1893,6 +1859,12 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
             x.getPivot().accept(this);
         }
 
+        SQLUnpivot unpivot = x.getUnpivot();
+        if (unpivot != null) {
+            println();
+            unpivot.accept(this);
+        }
+
         printFlashback(x.getFlashback());
 
         if ((x.getAlias() != null) && (x.getAlias().length() != 0)) {
@@ -1904,11 +1876,11 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
     }
 
     @Override
-    public boolean visit(OracleSelectUnPivot x) {
+    public boolean visit(SQLUnpivot x) {
         print0(ucase ? "UNPIVOT" : "unpivot");
         if (x.getNullsIncludeType() != null) {
             print(' ');
-            print0(OracleSelectUnPivot.NullsIncludeType.toString(x.getNullsIncludeType(), ucase));
+            print0(SQLUnpivot.NullsIncludeType.toString(x.getNullsIncludeType(), ucase));
         }
 
         print0(" (");
@@ -2043,6 +2015,10 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
                 print0(ucase ? " ON " : " on ");
                 x.getCondition().accept(this);
                 print(' ');
+                if (x.getAfterCommentsDirect() != null) {
+                    printAfterComments(x.getAfterCommentsDirect());
+                    println();
+                }
             }
 
             if (x.getUsing().size() > 0) {
@@ -2054,47 +2030,6 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
             printFlashback(x.getFlashback());
         }
 
-        return false;
-    }
-
-    @Override
-    public boolean visit(OracleSelectPivot x) {
-        print0(ucase ? "PIVOT" : "pivot");
-        if (x.isXml()) {
-            print0(ucase ? " XML" : " xml");
-        }
-        print0(" (");
-        printAndAccept(x.getItems(), ", ");
-
-        if (x.getPivotFor().size() > 0) {
-            print0(ucase ? " FOR " : " for ");
-            if (x.getPivotFor().size() == 1) {
-                ((SQLExpr) x.getPivotFor().get(0)).accept(this);
-            } else {
-                print('(');
-                printAndAccept(x.getPivotFor(), ", ");
-                print(')');
-            }
-        }
-
-        if (x.getPivotIn().size() > 0) {
-            print0(ucase ? " IN (" : " in (");
-            printAndAccept(x.getPivotIn(), ", ");
-            print(')');
-        }
-
-        print(')');
-
-        return false;
-    }
-
-    @Override
-    public boolean visit(OracleSelectPivot.Item x) {
-        x.getExpr().accept(this);
-        if ((x.getAlias() != null) && (x.getAlias().length() > 0)) {
-            print0(ucase ? " AS " : " as ");
-            print0(x.getAlias());
-        }
         return false;
     }
 
@@ -2246,7 +2181,7 @@ public class OscarOutputVisitor extends SQLASTOutputVisitor implements OscarASTV
                 print0(", ");
             }
             SQLExpr type = types.get(i);
-            if (Boolean.TRUE == type.getAttribute("ONLY")) {
+            if (Boolean.TRUE.equals(type.getAttribute("ONLY"))) {
                 print0(ucase ? "ONLY " : "only ");
             }
             type.accept(this);

@@ -48,12 +48,6 @@ public interface OracleASTVisitor extends SQLASTVisitor {
     default void endVisit(OracleSelectJoin x) {
     }
 
-    default void endVisit(OracleSelectPivot x) {
-    }
-
-    default void endVisit(OracleSelectPivot.Item x) {
-    }
-
     default void endVisit(OracleSelectRestriction.CheckOption x) {
     }
 
@@ -61,9 +55,6 @@ public interface OracleASTVisitor extends SQLASTVisitor {
     }
 
     default void endVisit(OracleSelectSubqueryTableSource x) {
-    }
-
-    default void endVisit(OracleSelectUnPivot x) {
     }
 
     default void endVisit(OracleUpdateStatement x) {
@@ -93,14 +84,6 @@ public interface OracleASTVisitor extends SQLASTVisitor {
         return true;
     }
 
-    default boolean visit(OracleSelectPivot x) {
-        return true;
-    }
-
-    default boolean visit(OracleSelectPivot.Item x) {
-        return true;
-    }
-
     default boolean visit(OracleSelectRestriction.CheckOption x) {
         return true;
     }
@@ -110,10 +93,6 @@ public interface OracleASTVisitor extends SQLASTVisitor {
     }
 
     default boolean visit(OracleSelectSubqueryTableSource x) {
-        return true;
-    }
-
-    default boolean visit(OracleSelectUnPivot x) {
         return true;
     }
 
@@ -333,20 +312,6 @@ public interface OracleASTVisitor extends SQLASTVisitor {
     default void endVisit(OracleSysdateExpr x) {
     }
 
-    default boolean visit(OracleExceptionStatement x) {
-        return true;
-    }
-
-    default void endVisit(OracleExceptionStatement x) {
-    }
-
-    default boolean visit(OracleExceptionStatement.Item x) {
-        return true;
-    }
-
-    default void endVisit(OracleExceptionStatement.Item x) {
-    }
-
     default boolean visit(OracleArgumentExpr x) {
         return true;
     }
@@ -501,6 +466,27 @@ public interface OracleASTVisitor extends SQLASTVisitor {
     }
 
     default void endVisit(OracleAlterTableMoveTablespace x) {
+    }
+
+    default boolean visit(OracleAlterTableRowMovement x) {
+        return true;
+    }
+
+    default void endVisit(OracleAlterTableRowMovement x) {
+    }
+
+    default boolean visit(OracleAlterTableShrinkSpace x) {
+        return true;
+    }
+
+    default void endVisit(OracleAlterTableShrinkSpace x) {
+    }
+
+    default boolean visit(OracleAlterSummaryStatement x) {
+        return true;
+    }
+
+    default void endVisit(OracleAlterSummaryStatement x) {
     }
 
     default boolean visit(OracleFileSpecification x) {
@@ -707,5 +693,26 @@ public interface OracleASTVisitor extends SQLASTVisitor {
     }
 
     default void endVisit(OracleXmlColumnProperties.OracleXMLTypeStorage x) {
+    }
+
+    default boolean visit(OracleAlterPackageStatement x) {
+        return true;
+    }
+
+    default void endVisit(OracleAlterPackageStatement x) {
+    }
+
+    default boolean visit(OracleDropPackageStatement x) {
+        return true;
+    }
+
+    default void endVisit(OracleDropPackageStatement x) {
+    }
+
+    default boolean visit(OracleCreateTableSpaceStatement x) {
+        return true;
+    }
+
+    default void endVisit(OracleCreateTableSpaceStatement x) {
     }
 }
